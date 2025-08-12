@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>أسعار العملات</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
+  <style>
+    body { font-family: Tahoma; text-align: center; padding: 20px; }
+    h1 { color: green; }
+    table { margin: auto; border-collapse: collapse; width: 80%; }
+    td, th { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    .flag-icon {
+      font-size: 24px;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>أسعار العملات اليوم</h1>
+  <table id="prices">
+    <tr>
+      <th>الدولة</th>
+      <th>العملة</th>
+      <th>سعر الشراء</th>
+      <th>سعر البيع</th>
+    </tr>
+  </table>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgFHeGCntBzBfnGYyO03iE3hit6YKF5EI",
+      authDomain: "currency-prices-11896.firebaseapp.com",
+      projectId: "currency-prices-11896",
+      storageBucket: "currency-prices-11896.firebasestorage.app",
+      messagingSenderId: "353897886701",
+      appId: "1:353897886701:web:464014f66298037f0b6de4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("currencies").onSnapshot(snapshot => {
+      const table = document.getElementById("prices");
+      table.innerHTML = `
+        <tr>
+          <th>الدولة</th>
+          <th>العملة</th>
+          <th>سعر الشراء</th>
+          <th>سعر البيع</th>
+        </tr>
+      `;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const code = data.code ? data.code.toLowerCase() : "";
+        table.innerHTML += `
+          <tr>
+            <td><span class="flag-icon flag-icon-${code}"></span> ${data.country}</td>
+            <td>${data.currency}</td>
+            <td>${data.buy}</td>
+            <td>${data.sell}</td>
+          </tr>
+        `;
+      });
+    });
+  </script>
+</body>
+</html>

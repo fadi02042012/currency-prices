@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>لوحة التحكم - أسعار العملات</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css" />
+  <style>
+    body { font-family: Tahoma; text-align: center; padding: 20px; }
+    select, input { padding: 8px; margin: 5px; width: 250px; }
+    button { padding: 8px 15px; margin-top: 10px; cursor: pointer; }
+    option.flag-option::before {
+      content: attr(data-flag-emoji);
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>إضافة / تعديل عملة</h1>
+
+  <select id="countryCode">
+    <option value="">اختر الدولة</option>
+  </select><br>
+
+  <input id="buy" placeholder="سعر الشراء" type="number" step="any" min="0" /><br>
+  <input id="sell" placeholder="سعر البيع" type="number" step="any" min="0" /><br>
+  <button onclick="savePrice()">حفظ</button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgFHeGCntBzBfnGYyO03iE3hit6YKF5EI",
+      authDomain: "currency-prices-11896.firebaseapp.com",
+      projectId: "currency-prices-11896",
+      storageBucket: "currency-prices-11896.firebasestorage.app",
+      messagingSenderId: "353897886701",
+      appId: "1:353897886701:web:464014f66298037f0b6de4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // بيانات الدول كاملة عندك، مثال مختصر فقط
+    const countries = [
+      { id: "", text: "اختر دولة", flag: "", currency_code: "", currency_name: "" },
+      { id: "sa", text: "السعودية", flag: "sa", currency_code: "SAR", currency_name: "ريال سعودي" },
+      { id: "us", text: "الولايات المتحدة", flag: "us", currency_code: "USD", currency_name: "دولار أمريكي" },
+      { id: "eg", text: "مصر", flag: "eg", currency_code: "EGP", currency_name: "جنيه مصري" },
+      // أضف بقية الدول كاملة هنا
+    ];
+
+    const select = document.getElementById("countryCode");
+
+    // تعبئة قائمة الدول
+    countries.forEach(c => {
+      if (!c.id) return; // تخطي الخيار الفارغ
+      const option = document.createElement("option");
+      option.value = c.id;
+      option.textContent = c.text + " - " + c.currency_code;
+      option.dataset.name = c.text;
+      option.dataset.currency = c.currency_name;
+      option.dataset.flag = c.flag;
+      select.appendChild(option);
+    });
+
+    // عند اختيار الدولة، عبي الحقول تلقائياً
+    select.addEventListener("change", () => {
+      const opt = select.options[select.selectedIndex];
+      if (opt && opt.value) {
+        document.getElementById("buy").value = "";
+        document.getElementById("sell").value = "";
+      }
+    });
+
+    function savePrice() {
+      const code = select.value;
+      const country = select.options[select.selectedIndex]?.dataset.name || "";
+      const currency = select.options[select.selectedIndex]?.dataset.currency || "";
+      const buy = document.getElementById("buy").value.trim();
+      const sell = document.getElementById("sell").value.trim();
+
+      if (!code) return alert("يرجى اختيار الدولة");
+      if (!buy || isNaN(buy) || Number(buy) <= 0) return alert("أدخل سعر شراء صالح");
+      if (!sell || isNaN(sell) || Number(sell) <= 0) return alert("أدخل سعر بيع صالح");
+
+      db.collection("currencies").doc(code).set({
+        code: code,
+        country: country,
+        currency: currency,
+        buy: Number(buy),
+        sell: Number(sell)
+      })
+      .then(() => alert("تم الحفظ بنجاح"))
+      .catch(err => alert("حدث خطأ: " + err.message));
+    }
+  </script>
+</body>
+</html>
